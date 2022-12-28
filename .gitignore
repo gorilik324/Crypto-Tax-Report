@@ -1,3 +1,7 @@
+target/
+dbt_packages/
+logs/
+
 # Logs
 logs
 *.log
