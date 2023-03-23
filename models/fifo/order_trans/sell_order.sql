@@ -1,11 +1,13 @@
 SELECT
     id,
-    TIME,
+    TIME sold_time,
     datetime,
     orderid AS sell_order_id,
     symbol,
     price,
     amount,
+    fee sell_fee,
+    COALESCE(LAG(fee) over w, 0) AS prev_sell_fee,
     COALESCE(LAG(amount) over w, 0) AS prev_sold_qty,
     price * amount proceeds,
     SUM(amount) over w AS cum_sold_qty,
@@ -16,7 +18,7 @@ SELECT
 FROM
     PUBLIC.orderstable
 WHERE
-    symbol = 'BCH'
+    symbol = 'NANO'
     AND side = 'sell' window w AS (
         PARTITION BY symbol
         ORDER BY
@@ -28,3 +30,5 @@ WHERE
             TIME rows BETWEEN unbounded preceding
             AND 1 preceding
     )
+ORDER BY
+    TIME DESC

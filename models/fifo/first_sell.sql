@@ -16,38 +16,68 @@ first_sell_order_with_details AS (
         JOIN first_sell_order
         ON first_sell_order.sell_time = uls.sold_time
         AND first_sell_order.buy_order_id = uls.buy_order_id
+    WHERE
+        prev_sell_order_id != 'a'
     ORDER BY
-        date_acquire
+        date_acquire,
+        date_sold
 )
 SELECT
     symbol,
     buy_order_id,
     date_acquire,
-    -- bought_time,
     bought_price,
     bought_qty,
-    -- cum_prev_bought_qty,
-    -- cum_bought_qty,
     liquidiate_cost,
-    -- bought_cost,
-    -- total_cost,
-    -- prev_total_cost,
-    --sell orders
+    buy_fee,
+    sold_time,
     sell_order_id,
     sold_price,
-    (
-        sold_qty - prev_sold_qty
-    ) sold_qty,
-    prev_sold_qty,
-    (
-        sold_qty - prev_sold_qty
-    ) * sold_price proceeds,
-    ((sold_qty - prev_sold_qty) * sold_price) - (
-        bought_price * (
+    sell_fee,
+    -- sold_qty,
+    original_sold_qty,
+    CASE
+        WHEN (
+            sold_qty - prev_sold_qty
+        ) > bought_qty THEN bought_qty
+        ELSE (
             sold_qty - prev_sold_qty
         )
-    ) order_pnL,
-    date_sold,
-    sold_time
+    END sold_qty,
+    prev_sold_qty,
+    CASE
+        WHEN (
+            sold_qty - prev_sold_qty
+        ) > bought_qty THEN bought_qty * sold_price
+        ELSE (
+            sold_qty - prev_sold_qty
+        ) * sold_price
+    END proceeds,
+    --
+    CASE
+        WHEN (
+            sold_qty - prev_sold_qty
+        ) > bought_qty THEN (
+            bought_qty * sold_price
+        ) - (
+            bought_price * (
+                bought_qty
+            )
+        )
+        ELSE ((sold_qty - prev_sold_qty) * sold_price) - (
+            bought_price * (
+                sold_qty - prev_sold_qty
+            )
+        )
+    END order_pnL,
+    date_sold
 FROM
-    first_sell_order_with_details -- )
+    first_sell_order_with_details
+WHERE
+    (
+        sold_qty - prev_sold_qty
+    ) >= 0
+ORDER BY
+    --     -- buy_order_id,
+    date_acquire,
+    date_sold -- buy_order_id -- sold_time -- )

@@ -13,14 +13,17 @@ SELECT
     bought_price,
     bought_qty,
     liquidiate_cost,
+    buy_fee,
     sell_order_id,
     sold_price,
+    sell_fee,
     sold_qty,
+    original_sold_qty,
     proceeds,
     date_sold,
     order_pnL
 FROM
-    {{ ref('first_sell') }}
+    o1
 UNION
 SELECT
     symbol,
@@ -29,14 +32,18 @@ SELECT
     bought_price,
     bought_qty,
     liquidiate_cost,
+    buy_fee,
     sell_order_id,
     sold_price,
+    sell_fee,
     sold_qty,
+    original_sold_qty,
     proceeds,
     date_sold,
     order_pnL
 FROM
-    o1
+    {{ ref('first_sell') }}
 ORDER BY
+    -- date_acquire,
     date_acquire,
     date_sold
