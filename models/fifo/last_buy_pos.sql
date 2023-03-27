@@ -1,36 +1,34 @@
-WITH first_sell_order AS (
+WITH buy1 AS (
+    SELECT
+        DISTINCT *
+    FROM
+        -- {{ ref('bought_cost_final') }}
+        {{ ref('cum_bought_cost') }}
+        -- {{ ref('bought_cost') }}
+    WHERE
+        cum_prev_bought_qty != 0
+        AND follow_bought_qty != 0
+        AND cum_prev_bought_qty < cum_sold_qty
+        AND cum_sold_qty < cum_bought_qty
+),
+buy2 AS (
     SELECT
         MIN(sold_time) sell_time
     FROM
-        -- {{ ref('bought_cost_final') }}
-        {{ ref('cum_bought_cost') }}
-        -- {{ ref('bought_cost') }}
+        buy1
     GROUP BY
         buy_order_id
 ),
-first_sell_order_with_details AS (
+buy3 AS (
     SELECT
         *
     FROM
-        -- {{ ref('bought_cost_final') }}
-        {{ ref('cum_bought_cost') }}
-        -- {{ ref('bought_cost') }}
-        cbc
-        JOIN first_sell_order
-        ON first_sell_order.sell_time = cbc.sold_time
+        buy1
+        JOIN buy2
+        ON buy2.sell_time = buy1.sold_time
     ORDER BY
         bought_time,
         sold_time
-),
-first_sell_order_exclude_first_order AS (
-    SELECT
-        *
-    FROM
-        first_sell_order_with_details
-    WHERE
-        prev_bought_price != 0
-        AND cum_sold_qty != cum_bought_qty -- AND cum_prev_bought_qty < cum_sold_qty
-        -- AND cum_sold_qty <= cum_bought_qty
 )
 SELECT
     -- buy orders
@@ -44,8 +42,8 @@ SELECT
     prev_bought_qty bought_qty,
     prev_bought_cost bought_cost,
     -- sell orders
-    cum_sold_qty,
     sell_order_id,
+    cum_sold_qty,
     sold_price,
     sold_qty original_sold_qty,
     (
@@ -65,7 +63,11 @@ SELECT
     -- cum_sold_qty,
     -- cum_proceeds,
 FROM
-    first_sell_order_exclude_first_order -- WHERE
+    buy3
+WHERE
+    (
+        cum_prev_bought_qty - cum_prev_sold_qty
+    ) > 0 -- WHERE
     --     sold_time != 0
     -- UNION
     -- SELECT

@@ -17,7 +17,13 @@ SELECT
     prev_bought_qty,
     prev_bought_cost,
     cum_prev_bought_qty,
+    follow_bought_qty,
     --sell orders
+    COALESCE(
+        cum_sold_qty,
+        0
+    ) cum_sold_qty,
+    cum_bought_qty,
     COALESCE(
         sold_time,
         0

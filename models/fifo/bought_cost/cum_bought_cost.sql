@@ -10,6 +10,7 @@ SELECT
     tpos.cum_bought_qty,
     tpos.cost bought_cost,
     tpos.buy_fee,
+    tpos.follow_bought_qty,
     -- sell orders
     tneg.sold_time,
     tneg.price sold_price,
@@ -44,8 +45,8 @@ SELECT
     -- tneg.prev_total_cost,
 FROM
     {{ ref('sell_order') }}
-    tneg
-    RIGHT JOIN {{ ref('buy_order') }}
+    tneg full
+    OUTER JOIN {{ ref('buy_order') }}
     tpos
     ON (
         tpos.cum_prev_bought_qty < tneg.cum_sold_qty

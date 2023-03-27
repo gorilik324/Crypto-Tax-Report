@@ -10,6 +10,14 @@ WITH union_sell_order AS (
         buy_fee,
         bought_cost,
         cum_prev_bought_qty,
+        cum_bought_qty,
+        prev_buy_time,
+        prev_bought_time,
+        prev_buy_fee,
+        prev_buy_order_id,
+        prev_bought_price,
+        prev_bought_qty,
+        prev_bought_cost,
         -- sell orders
         sold_time,
         sold_price,
@@ -19,7 +27,8 @@ WITH union_sell_order AS (
         sell_order_id,
         sold_qty original_sold_qty,
         sold_datetime,
-        cum_prev_sold_qty
+        cum_prev_sold_qty,
+        cum_sold_qty
     FROM
         {{ ref('bought_cost_final') }}
     UNION
@@ -33,6 +42,14 @@ WITH union_sell_order AS (
         buy_fee,
         bought_cost,
         cum_prev_bought_qty,
+        cum_bought_qty,
+        buy_time prev_buy_time,
+        bought_time prev_bought_time,
+        buy_fee prev_buy_fee,
+        buy_order_id prev_buy_order_id,
+        bought_price prev_bought_price,
+        bought_qty prev_bought_qty,
+        bought_cost prev_bought_cost,
         sold_time,
         sold_price,
         sold_qty,
@@ -41,9 +58,10 @@ WITH union_sell_order AS (
         sell_order_id,
         original_sold_qty,
         sold_datetime,
-        cum_prev_sold_qty
+        cum_prev_sold_qty,
+        cum_sold_qty
     FROM
-        {{ ref('last_buy') }}
+        {{ ref('last_buy_pos') }}
     ORDER BY
         bought_time,
         sold_time
@@ -57,6 +75,8 @@ SELECT
     bought_qty,
     ROUND((bought_price * sold_qty), 4) liquidiate_cost,
     buy_fee,
+    cum_sold_qty,
+    cum_bought_qty,
     sold_time,
     sell_order_id,
     sold_price,
@@ -82,10 +102,18 @@ ORDER BY
         ORDER BY
             bought_time)),
             'a'
-    ) prev_sell_order_id
+    ) prev_sell_order_id,
+    prev_buy_time,
+    prev_bought_time,
+    prev_buy_fee,
+    prev_buy_order_id,
+    prev_bought_price,
+    prev_bought_qty,
+    prev_bought_cost
 FROM
-    union_sell_order -- WHERE
-    --     sold_qty > 0
+    union_sell_order
+WHERE
+    sold_qty > 0
 ORDER BY
     bought_time,
     sold_time

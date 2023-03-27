@@ -12,6 +12,7 @@ SELECT
     COALESCE(LAG(price) over w, 0) AS prev_bought_price,
     amount,
     COALESCE(LAG(amount) over w, 0) AS prev_bought_qty,
+    COALESCE(LEAD(amount) over w, 0) AS follow_bought_qty,
     SUM(amount) over w AS cum_bought_qty,
     COALESCE(SUM(amount) over prevw, 0) AS cum_prev_bought_qty,
     cost,
