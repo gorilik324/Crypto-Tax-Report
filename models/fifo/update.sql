@@ -2,9 +2,7 @@ WITH buy1 AS (
     SELECT
         DISTINCT *
     FROM
-        -- {{ ref('bought_cost_final') }}
         {{ ref('union_last_sell') }}
-        -- {{ ref('bought_cost') }}
     WHERE
         cum_prev_bought_qty != 0
         AND cum_prev_bought_qty < cum_sold_qty
@@ -12,7 +10,8 @@ WITH buy1 AS (
 ),
 buy2 AS (
     SELECT
-        MIN(sold_time) sell_time
+        MIN(sold_time) sell_time,
+        buy_order_id id
     FROM
         buy1
     GROUP BY
@@ -25,6 +24,7 @@ buy3 AS (
         buy1
         JOIN buy2
         ON buy2.sell_time = buy1.sold_time
+        AND buy2.id = buy1.buy_order_id
     ORDER BY
         date_acquire,
         sold_time
@@ -58,49 +58,6 @@ buy6 AS (
         AND uls.sell_order_id = buy5.soi
     WHERE
         buy5.boi IS NULL
-),
-buy7 AS (
-    SELECT
-        symbol,
-        buy_order_id,
-        date_acquire,
-        bought_price,
-        bought_qty,
-        liquidiate_cost,
-        buy_fee,
-        sell_order_id,
-        sold_price,
-        sell_fee,
-        sold_qty,
-        original_sold_qty,
-        proceeds,
-        date_sold,
-        order_pnL
-    FROM
-        buy6
-    UNION
-    SELECT
-        symbol,
-        buy_order_id,
-        date_acquire,
-        bought_price,
-        bought_qty,
-        liquidiate_cost,
-        buy_fee,
-        sell_order_id,
-        sold_price,
-        sell_fee,
-        sold_qty,
-        original_sold_qty,
-        proceeds,
-        date_sold,
-        order_pnL
-    FROM
-        {{ ref('first_sell_pos_adj') }}
-    ORDER BY
-        -- date_acquire,
-        date_acquire,
-        date_sold
 )
 SELECT
     symbol,
@@ -119,7 +76,7 @@ SELECT
     date_sold,
     order_pnL
 FROM
-    buy7
+    buy6
 UNION
 SELECT
     symbol,
@@ -138,7 +95,7 @@ SELECT
     date_sold,
     order_pnL
 FROM
-    {{ ref('update_skip_buy') }}
+    {{ ref('first_sell_pos_adj') }}
 ORDER BY
     -- date_acquire,
     date_acquire,

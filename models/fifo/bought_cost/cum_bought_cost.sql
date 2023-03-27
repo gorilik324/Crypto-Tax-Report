@@ -36,6 +36,7 @@ SELECT
     tpos.prev_bought_qty,
     tpos.prev_bought_cost,
     tpos.cum_prev_bought_qty,
+    tneg.prev_sold_qty,
     -- tpos.total_cost,
     -- tpos.prev_total_cost,
     -- tpos.prev_buy_fee,

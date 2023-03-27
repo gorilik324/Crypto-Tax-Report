@@ -2,12 +2,9 @@ WITH buy1 AS (
     SELECT
         DISTINCT *
     FROM
-        -- {{ ref('bought_cost_final') }}
-        {{ ref('cum_bought_cost') }}
-        -- {{ ref('bought_cost') }}
+        {{ ref('union_skip_buy') }}
     WHERE
-        cum_prev_bought_qty != 0
-        AND follow_bought_qty != 0
+        cum_prev_bought_qty != 0 -- AND follow_bought_qty != 0
         AND cum_prev_bought_qty < cum_sold_qty
         AND cum_sold_qty < cum_bought_qty
 ),

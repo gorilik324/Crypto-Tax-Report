@@ -2,17 +2,16 @@ WITH buy1 AS (
     SELECT
         DISTINCT *
     FROM
-        -- {{ ref('bought_cost_final') }}
         {{ ref('union_last_sell') }}
-        -- {{ ref('bought_cost') }}
-    WHERE
-        cum_prev_bought_qty != 0
-        AND cum_prev_bought_qty < cum_sold_qty
-        AND cum_sold_qty < cum_bought_qty
+        -- WHERE
+        --     cum_prev_bought_qty != 0
+        --     AND cum_prev_bought_qty < cum_sold_qty
+        --     AND cum_sold_qty < cum_bought_qty
 ),
 buy2 AS (
     SELECT
-        MIN(sold_time) sell_time
+        MIN(sold_time) sell_time,
+        buy_order_id id
     FROM
         buy1
     GROUP BY
@@ -25,6 +24,7 @@ buy3 AS (
         buy1
         JOIN buy2
         ON buy2.sell_time = buy1.sold_time
+        AND buy2.id = buy1.buy_order_id
     ORDER BY
         date_acquire,
         sold_time
@@ -35,9 +35,12 @@ buy4 AS (
     FROM
         buy3
     WHERE
-        (
+        cum_prev_bought_qty != 0
+        AND cum_prev_bought_qty < cum_sold_qty
+        AND cum_sold_qty < cum_bought_qty
+        AND (
             sold_qty - prev_sold_qty
-        ) > 0
+        ) > 0 -- AND sell_order_id != follow_sell_order_id
 )
 SELECT
     DISTINCT symbol,
@@ -60,9 +63,10 @@ SELECT
         WHEN (
             sold_qty - prev_sold_qty
         ) > bought_qty THEN bought_qty
-        ELSE (
+        WHEN sell_order_id != follow_sell_order_id THEN (
             sold_qty - prev_sold_qty
         )
+        ELSE bought_qty
     END sold_qty,
     prev_sold_qty,
     CASE

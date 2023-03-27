@@ -30,7 +30,7 @@ WITH union_sell_order AS (
         cum_prev_sold_qty,
         cum_sold_qty
     FROM
-        {{ ref('bought_cost_final') }}
+        {{ ref('union_skip_buy') }}
     UNION
     SELECT
         symbol,
@@ -103,6 +103,12 @@ ORDER BY
             bought_time)),
             'a'
     ) prev_sell_order_id,
+    COALESCE(
+        (LEAD(sell_order_id) over (PARTITION BY symbol
+        ORDER BY
+            bought_time)),
+            'a'
+    ) follow_sell_order_id,
     prev_buy_time,
     prev_bought_time,
     prev_buy_fee,

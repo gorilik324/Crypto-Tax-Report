@@ -56,6 +56,10 @@ SELECT
         cum_prev_sold_qty,
         0
     ) cum_prev_sold_qty,
+    COALESCE(
+        prev_sold_qty,
+        0
+    ) prev_sold_qty,
     -- Grouping sell orders
     CASE
         WHEN sold_price > 0 THEN 1

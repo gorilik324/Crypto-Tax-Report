@@ -29,6 +29,7 @@ WITH group1 AS (
         sold_datetime,
         cum_sold_qty,
         cum_prev_sold_qty,
+        prev_sold_qty,
         SUM(pre_group) over (
             PARTITION BY symbol
             ORDER BY

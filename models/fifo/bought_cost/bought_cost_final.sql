@@ -105,6 +105,18 @@ WITH cbcfinal AS (
             )
         END cum_prev_sold_qty,
         CASE
+            WHEN prev_sold_qty != 0 THEN prev_sold_qty
+            WHEN prev_sold_qty = 0 THEN LAST_VALUE(
+                prev_sold_qty
+            ) over(
+                PARTITION BY group2,
+                symbol
+                ORDER BY
+                    prev_sold_qty RANGE BETWEEN unbounded preceding
+                    AND unbounded following
+            )
+        END prev_sold_qty,
+        CASE
             WHEN sell_order_id != 'aaa' THEN sell_order_id
             WHEN sell_order_id = 'aaa' THEN LAST_VALUE(
                 sell_order_id
@@ -160,18 +172,19 @@ SELECT
     sold_price,
     sell_fee,
     cum_prev_sold_qty,
+    prev_sold_qty,
     sell_order_id,
     sold_datetime,
     CASE
         WHEN cum_sold_qty >= cum_bought_qty
         AND cum_prev_bought_qty < cum_sold_qty
-        AND cum_sold_qty < cum_bought_qty THEN bought_qty
+        AND cum_sold_qty >= cum_bought_qty THEN bought_qty
         ELSE sold_qty
     END sold_qty,
     CASE
         WHEN cum_sold_qty >= cum_bought_qty
         AND cum_prev_bought_qty < cum_sold_qty
-        AND cum_sold_qty < cum_bought_qty THEN bought_qty * sold_price
+        AND cum_sold_qty >= cum_bought_qty THEN bought_qty * sold_price
         ELSE proceeds
     END proceeds
 FROM

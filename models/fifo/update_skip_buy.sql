@@ -2,7 +2,7 @@ WITH buy1 AS (
     SELECT
         DISTINCT *
     FROM
-        {{ ref('union_last_sell') }}
+        {{ ref('bought_cost_final') }}
     WHERE
         cum_prev_bought_qty < cum_sold_qty
         AND cum_sold_qty > cum_bought_qty
@@ -23,7 +23,7 @@ buy3 AS (
         JOIN buy2
         ON buy2.sell_time = buy1.sold_time
     ORDER BY
-        date_acquire,
+        bought_time,
         sold_time
 ),
 buy4 AS (
@@ -38,8 +38,10 @@ buy4 AS (
 )
 SELECT
     DISTINCT symbol,
+    prev_buy_time buy_time,
+    prev_bought_cost bought_cost,
     prev_buy_order_id buy_order_id,
-    prev_bought_time date_acquire,
+    prev_bought_time bought_time,
     prev_bought_price bought_price,
     prev_bought_qty bought_qty,
     ROUND((prev_bought_price * prev_sold_qty), 4) liquidiate_cost,
@@ -49,8 +51,10 @@ SELECT
     sold_price,
     sell_fee,
     cum_prev_bought_qty,
+    sold_datetime,
+    cum_prev_sold_qty,
     -- sold_qty,
-    original_sold_qty,
+    -- original_sold_qty,
     cum_sold_qty,
     cum_bought_qty,
     (
@@ -76,14 +80,14 @@ SELECT
             )
         )
     END order_pnL,
-    date_sold
+    follow_bought_qty -- ,date_sold
 FROM
     buy4
 WHERE
     (
         sold_qty - prev_sold_qty
-    ) > 0 --     AND original_sold_qty != cum_prev_bought_qty
+    ) < 0 --     AND original_sold_qty != cum_prev_bought_qty
 ORDER BY
     --     -- buy_order_id,
-    date_acquire,
-    date_sold -- buy_order_id -- sold_time -- )
+    bought_time,
+    sold_time -- buy_order_id -- sold_time -- )
