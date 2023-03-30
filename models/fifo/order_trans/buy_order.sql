@@ -22,7 +22,7 @@ SELECT
 FROM
     PUBLIC.orderstable
 WHERE
-    symbol = 'NANO'
+    symbol = 'ADA'
     AND side = 'buy' window w AS (
         PARTITION BY symbol
         ORDER BY

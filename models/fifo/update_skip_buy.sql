@@ -3,6 +3,7 @@ WITH buy1 AS (
         DISTINCT *
     FROM
         {{ ref('bought_cost_final') }}
+        -- {{ ref('cum_bought_cost') }}
     WHERE
         cum_prev_bought_qty < cum_sold_qty
         AND cum_sold_qty > cum_bought_qty
@@ -35,6 +36,18 @@ buy4 AS (
         (
             cum_prev_bought_qty - cum_prev_sold_qty
         ) > 0
+),
+buy5 AS (
+    SELECT
+        *,
+        COALESCE(
+            (LEAD(sell_order_id, 2) over (PARTITION BY symbol
+            ORDER BY
+                bought_time)),
+                'a'
+        ) follow_sell_order_id
+    FROM
+        buy4
 )
 SELECT
     DISTINCT symbol,
@@ -57,9 +70,12 @@ SELECT
     -- original_sold_qty,
     cum_sold_qty,
     cum_bought_qty,
-    (
-        cum_prev_bought_qty - cum_prev_sold_qty
-    ) sold_qty,
+    CASE
+        WHEN follow_sell_order_id = sell_order_id THEN bought_qty
+        ELSE (
+            cum_prev_bought_qty - cum_prev_sold_qty
+        )
+    END sold_qty,
     prev_sold_qty,
     (
         cum_prev_bought_qty - cum_prev_sold_qty
@@ -80,13 +96,15 @@ SELECT
             )
         )
     END order_pnL,
-    follow_bought_qty -- ,date_sold
+    follow_bought_qty,
+    follow_sell_order_id -- ,date_sold
 FROM
-    buy4
+    buy5
 WHERE
     (
         sold_qty - prev_sold_qty
-    ) < 0 --     AND original_sold_qty != cum_prev_bought_qty
+    ) < 0
+    AND sell_order_id != follow_sell_order_id -- AND follow_sell_order_id != 'a' --     AND original_sold_qty != cum_prev_bought_qty
 ORDER BY
     --     -- buy_order_id,
     bought_time,
