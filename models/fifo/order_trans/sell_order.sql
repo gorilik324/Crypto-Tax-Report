@@ -18,7 +18,7 @@ SELECT
 FROM
     PUBLIC.orderstable
 WHERE
-    symbol = 'ADA'
+    symbol = 'ETH'
     AND side = 'sell' window w AS (
         PARTITION BY symbol
         ORDER BY

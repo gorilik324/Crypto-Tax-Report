@@ -2,7 +2,7 @@ WITH buy1 AS (
     SELECT
         DISTINCT *
     FROM
-        {{ ref('union_skip_buy') }}
+        {{ ref('bought_cost_final') }}
     WHERE
         cum_prev_bought_qty != 0 -- AND follow_bought_qty != 0
         AND cum_prev_bought_qty < cum_sold_qty
@@ -31,29 +31,33 @@ SELECT
     -- buy orders
     DISTINCT symbol,
     cum_bought_qty,
-    prev_buy_time buy_time,
-    prev_bought_time bought_time,
-    prev_buy_fee buy_fee,
-    prev_buy_order_id buy_order_id,
-    prev_bought_price bought_price,
-    prev_bought_qty bought_qty,
-    prev_bought_cost bought_cost,
+    buy_time,
+    bought_time,
+    buy_fee,
+    buy_order_id,
+    bought_price,
+    bought_qty,
+    bought_cost,
     -- sell orders
     sell_order_id,
     cum_sold_qty,
     sold_price,
     sold_qty original_sold_qty,
     (
-        cum_prev_bought_qty - cum_prev_sold_qty
+        cum_sold_qty - cum_prev_bought_qty
     ) sold_qty,
     (
-        cum_prev_bought_qty - cum_prev_sold_qty
+        cum_sold_qty - cum_prev_bought_qty
     ) * sold_price proceeds,
     sold_datetime,
     sell_fee,
     sold_time,
     cum_prev_bought_qty,
-    cum_prev_sold_qty -- cum_bought_qty,
+    cum_prev_sold_qty,
+    CASE
+        WHEN sold_qty = 0 THEN 88
+        ELSE 9999
+    END bcf -- cum_bought_qty,
     -- total_cost,
     -- prev_total_cost,
     -- sold_qty original_sold_qty,
@@ -61,10 +65,12 @@ SELECT
     -- cum_proceeds,
 FROM
     buy3
-WHERE
-    (
-        cum_prev_bought_qty - cum_prev_sold_qty
-    ) > 0 -- WHERE
+ORDER BY
+    bought_time,
+    sold_time -- WHERE
+    --     (
+    --         cum_prev_bought_qty - cum_prev_sold_qty
+    --     ) > 0 -- WHERE
     --     sold_time != 0
     -- UNION
     -- SELECT

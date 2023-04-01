@@ -22,7 +22,7 @@ SELECT
 FROM
     PUBLIC.orderstable
 WHERE
-    symbol = 'ADA'
+    symbol = 'ETH'
     AND side = 'buy' window w AS (
         PARTITION BY symbol
         ORDER BY

@@ -186,6 +186,17 @@ SELECT
         AND cum_prev_bought_qty < cum_sold_qty
         AND cum_sold_qty >= cum_bought_qty THEN bought_qty * sold_price
         ELSE proceeds
-    END proceeds
+    END proceeds,
+    CASE
+        WHEN (
+            cum_prev_bought_qty != 0
+            AND cum_prev_bought_qty < cum_sold_qty
+            AND cum_sold_qty < cum_bought_qty
+        ) THEN NULL
+        ELSE 1
+    END bcf
 FROM
     cbcfinal
+ORDER BY
+    bought_time,
+    sold_time

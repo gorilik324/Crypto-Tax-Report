@@ -45,7 +45,7 @@ SELECT
     *,
     COALESCE(LAG(group1, 1) over (
 ORDER BY
-    bought_time), -1) group2
+    bought_time), 0) group2
 FROM
     group1
 ORDER BY
