@@ -22,7 +22,7 @@ SELECT
 FROM
     PUBLIC.orderstable
 WHERE
-    symbol = 'ETH'
+    symbol = 'BTC'
     AND side = 'buy' window w AS (
         PARTITION BY symbol
         ORDER BY

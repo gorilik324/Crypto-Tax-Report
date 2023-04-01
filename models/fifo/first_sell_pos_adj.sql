@@ -9,7 +9,8 @@ WITH buy1 AS (
 ),
 buy2 AS (
     SELECT
-        MIN(buy_time) buy_time1
+        MIN(buy_time) buy_time1,
+        sell_order_id id
     FROM
         buy1
     GROUP BY
@@ -22,6 +23,7 @@ buy3 AS (
         buy1
         JOIN buy2
         ON buy2.buy_time1 = buy1.buy_time
+        AND buy2.id = buy1.sell_order_id
     ORDER BY
         bought_time,
         sold_time
@@ -105,6 +107,5 @@ SELECT
 FROM
     buy4
 ORDER BY
-    --     -- buy_order_id,
     date_acquire,
-    date_sold -- buy_order_id -- sold_time -- )
+    date_sold
