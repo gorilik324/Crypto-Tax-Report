@@ -17,6 +17,8 @@ WITH group1 AS (
         prev_bought_qty,
         prev_bought_cost,
         cum_prev_bought_qty,
+        cum_bought_qty,
+        follow_bought_qty,
         --sell orders
         sold_time,
         sold_price,
@@ -25,7 +27,9 @@ WITH group1 AS (
         proceeds,
         sell_order_id,
         sold_datetime,
+        cum_sold_qty,
         cum_prev_sold_qty,
+        prev_sold_qty,
         SUM(pre_group) over (
             PARTITION BY symbol
             ORDER BY
@@ -41,7 +45,7 @@ SELECT
     *,
     COALESCE(LAG(group1, 1) over (
 ORDER BY
-    bought_time), -1) group2
+    bought_time), 0) group2
 FROM
     group1
 ORDER BY

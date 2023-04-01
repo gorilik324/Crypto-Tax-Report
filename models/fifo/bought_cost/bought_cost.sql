@@ -17,7 +17,13 @@ SELECT
     prev_bought_qty,
     prev_bought_cost,
     cum_prev_bought_qty,
+    follow_bought_qty,
     --sell orders
+    COALESCE(
+        cum_sold_qty,
+        0
+    ) cum_sold_qty,
+    cum_bought_qty,
     COALESCE(
         sold_time,
         0
@@ -50,6 +56,10 @@ SELECT
         cum_prev_sold_qty,
         0
     ) cum_prev_sold_qty,
+    COALESCE(
+        prev_sold_qty,
+        0
+    ) prev_sold_qty,
     -- Grouping sell orders
     CASE
         WHEN sold_price > 0 THEN 1
@@ -59,77 +69,4 @@ FROM
     {{ ref('cum_bought_cost') }}
 ORDER BY
     bought_time,
-    sold_time -- )
-    -- SELECT
-    --     *,
-    --     SUM(pre_group) over (
-    --         PARTITION BY symbol
-    --         ORDER BY
-    --             bought_time
-    --     ) group1,
-    --     LEAD(sell_order_id) over (
-    --         PARTITION BY symbol
-    --         ORDER BY
-    --             bought_time
-    --     ) AS former_sell_order_id,
-    --     LEAD(buy_fee) over (
-    --         PARTITION BY symbol
-    --         ORDER BY
-    --             bought_time
-    --     ) AS former_buy_fee,
-    --     LEAD(sold_time) over (
-    --         PARTITION BY symbol
-    --         ORDER BY
-    --             bought_time
-    --     ) AS former_sold_time,
-    --     LEAD(sold_price) over (
-    --         PARTITION BY symbol
-    --         ORDER BY
-    --             bought_time
-    --     ) AS former_sold_price,
-    --     LEAD(sell_fee) over (
-    --         PARTITION BY symbol
-    --         ORDER BY
-    --             bought_time
-    --     ) AS former_sell_fee,
-    --     LEAD(sold_qty) over (
-    --         PARTITION BY symbol
-    --         ORDER BY
-    --             bought_time
-    --     ) AS former_sold_qty,
-    --     LEAD(cum_prev_sold_qty) over (
-    --         PARTITION BY symbol
-    --         ORDER BY
-    --             bought_time
-    --     ) AS former_cum_prev_sold_qty,
-    --     LEAD(cum_sold_qty) over (
-    --         PARTITION BY symbol
-    --         ORDER BY
-    --             bought_time
-    --     ) AS former_cum_sold_qty,
-    --     LEAD(sold_datetime) over (
-    --         PARTITION BY symbol
-    --         ORDER BY
-    --             bought_time
-    --     ) AS former_sold_datetime
-    -- FROM
-    --     bc
-    -- ORDER BY
-    --     bought_time
-    -- WITH cte AS (
-    --     SELECT
-    --         *
-    --     FROM
-    --         {{ ref('cum_bought_cost') }} cbc
-    --     WHERE sell_order_id IS not NULL
-    --     UNION ALL
-    --     SELECT
-    --         e.staff_id,
-    --         e.first_name,
-    --         e.manager_id
-    --     FROM
-    --         sales.staffs e
-    --         INNER JOIN cte_org o
-    --             ON o.staff_id = e.manager_id
-    -- )
-    -- SELECT * FROM cte;
+    sold_time

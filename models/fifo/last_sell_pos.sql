@@ -1,67 +1,76 @@
-WITH first_sell_order AS (
+WITH buy1 AS (
+    SELECT
+        DISTINCT *
+    FROM
+        {{ ref('bought_cost_final') }}
+    WHERE
+        cum_prev_bought_qty != 0 -- AND follow_bought_qty != 0
+        AND cum_prev_bought_qty < cum_sold_qty
+        AND cum_sold_qty < cum_bought_qty
+),
+buy2 AS (
     SELECT
         MIN(sold_time) sell_time
     FROM
-        -- {{ ref('bought_cost_final') }}
-        {{ ref('cum_bought_cost') }}
-        -- {{ ref('bought_cost') }}
+        buy1
     GROUP BY
         buy_order_id
 ),
-first_sell_order_with_details AS (
+buy3 AS (
     SELECT
         *
     FROM
-        {{ ref('bought_cost_final') }}
-        -- {{ ref('cum_bought_cost') }}
-        -- {{ ref('bought_cost') }}
-        cbc
-        JOIN first_sell_order
-        ON first_sell_order.sell_time = cbc.sold_time
+        buy1
+        JOIN buy2
+        ON buy2.sell_time = buy1.sold_time
     ORDER BY
         bought_time,
         sold_time
-),
-first_sell_order_exclude_first_order AS (
-    SELECT
-        *
-    FROM
-        first_sell_order_with_details
-    WHERE
-        prev_bought_price != 0
 )
 SELECT
     -- buy orders
     DISTINCT symbol,
-    prev_buy_time buy_time,
-    prev_bought_time bought_time,
-    prev_buy_fee buy_fee,
-    prev_buy_order_id buy_order_id,
-    prev_bought_price bought_price,
-    prev_bought_qty bought_qty,
-    prev_bought_cost bought_cost,
+    cum_bought_qty,
+    buy_time,
+    bought_time,
+    buy_fee,
+    buy_order_id,
+    bought_price,
+    bought_qty,
+    bought_cost,
     -- sell orders
     sell_order_id,
+    cum_sold_qty,
     sold_price,
     sold_qty original_sold_qty,
     (
-        cum_prev_bought_qty - cum_prev_sold_qty
+        cum_sold_qty - cum_prev_bought_qty
     ) sold_qty,
     (
-        cum_prev_bought_qty - cum_prev_sold_qty
+        cum_sold_qty - cum_prev_bought_qty
     ) * sold_price proceeds,
     sold_datetime,
     sell_fee,
     sold_time,
     cum_prev_bought_qty,
-    cum_prev_sold_qty -- cum_bought_qty,
+    cum_prev_sold_qty,
+    CASE
+        WHEN sold_qty = 0 THEN 88
+        ELSE 9999
+    END bcf -- cum_bought_qty,
     -- total_cost,
     -- prev_total_cost,
     -- sold_qty original_sold_qty,
     -- cum_sold_qty,
     -- cum_proceeds,
 FROM
-    first_sell_order_exclude_first_order -- WHERE
+    buy3
+ORDER BY
+    bought_time,
+    sold_time -- WHERE
+    --     (
+    --         cum_prev_bought_qty - cum_prev_sold_qty
+    --     ) > 0 -- WHERE
     --     sold_time != 0
     -- UNION
     -- SELECT
