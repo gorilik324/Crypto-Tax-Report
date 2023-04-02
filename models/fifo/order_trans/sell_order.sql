@@ -18,7 +18,7 @@ SELECT
 FROM
     PUBLIC.orderstable
 WHERE
-    symbol = 'BTC'
+    symbol = 'NANO'
     AND side = 'sell' window w AS (
         PARTITION BY symbol
         ORDER BY
